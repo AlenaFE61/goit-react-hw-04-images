@@ -19,29 +19,31 @@ export const App = () => {
   const per_page = 12;
 
   useEffect(() => {
+    const getImages = async (searchQuery, page) => {
+      if (!searchQuery) {
+        return;
+      }
+      setIsLoading(true);
+  
+      try {
+        const { hits, totalHits } = await fetchImages(searchQuery, page);
+        if (hits.length === 0) {
+          return alert('Sorry, nothing found ');
+        }
+        console.log(hits, totalHits);
+        setImages(prevImages => [...prevImages, ...hits]);
+        setLoadMore(page < Math.ceil(totalHits / per_page));
+      } catch (error) {
+        setError({ error });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     getImages(searchQuery, page);
   }, [searchQuery, page]);
 
-  const getImages = async (searchQuery, page) => {
-    if (!searchQuery) {
-      return;
-    }
-    setIsLoading(true);
-
-    try {
-      const { hits, totalHits } = await fetchImages(searchQuery, page);
-      if (hits.length === 0) {
-        return alert('Sorry, nothing found ');
-      }
-      console.log(hits, totalHits);
-      setImages(prevImages => [...prevImages, ...hits]);
-      setLoadMore(page < Math.ceil(totalHits / per_page));
-    } catch (error) {
-      setError({ error });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const formSubmit = searchQuery => {
     setSearchQuery(searchQuery);
@@ -51,7 +53,6 @@ export const App = () => {
   };
 
   const onloadMore = () => {
-    setIsLoading(true);
     setPage(prevPage => prevPage + 1);
     scrollOnMoreButton();
   };
@@ -67,7 +68,6 @@ export const App = () => {
   };
 
   const openModal = largeImageURL => {
-    console.log(largeImageURL);
     setShowModal(true);
     setLargeImageURL(largeImageURL);
   };
@@ -84,7 +84,7 @@ export const App = () => {
 
         {images.length > 0 ? (
           <ImageGallery images={images} openModal={openModal} />
-          ) : (<p></p>
+          ) : (<p>Enter something in the search</p>
           )}
         {error && <p>something went wrong</p>}
 
